@@ -1,0 +1,38 @@
+services:
+  # Database service
+  mongoDB:
+    container_name: todo-db
+    image: mongo:latest
+    restart: always
+    volumes:
+      - ./backend/data/db:/data/db
+    ports:
+      - 27017:27017
+
+  #  Backend Server
+  todo-api:
+    build:
+      context: ./backend
+    container_name: todo-api
+    image: todo-api:latest
+    ports:
+      - 3001:3001
+    depends_on:
+      - mongoDB
+    environment:
+      MONGODB_URI: mongodb://mongoDB:27017/todo-app
+      PORT: 3001
+
+  # Frontend
+  todo-front:
+    build:
+      context: ./frontend
+    container_name: todo-frontend
+    image: todo-frontend:latest
+    depends_on:
+      - todo-api
+    ports:
+      - 3000:3000
+    environment:
+      NODE_ENV: production
+      REACT_APP_API_URL: http://localhost:3001/api/ # Since frontend is running on the host machine, we have to use localhost
